@@ -1,47 +1,50 @@
+import fs from "fs";
+import path from "path";
+
 export async function handler(event) {
 
-  const repo = event.queryStringParameters.repo;
+  const repo =
+    event.queryStringParameters.repo;
 
-  if(!repo){
+  if (!repo) {
     return {
-      statusCode:400,
-      body:JSON.stringify({
-        error:"Missing repo"
+      statusCode: 400,
+      body: JSON.stringify({
+        error: "Missing repo"
       })
     };
   }
 
-  try{
+  try {
 
-    /* Fetch from InfinityFree */
+    /* Build file path */
 
-    const res = await fetch(
-      `https://myenv.my-style.in/export.php?repo=${repo}`
+    const filePath = path.join(
+      process.cwd(),
+      "env",
+      `${repo}.json`
     );
 
-    const text = await res.text();
+    /* Read ENV file */
 
-    /* Extract JSON from JS */
-
-    const json = text
-      .replace("window.ENV=","")
-      .replace(";","");
+    const data =
+      fs.readFileSync(filePath, "utf8");
 
     return {
-      statusCode:200,
-      headers:{
-        "Content-Type":"application/json",
-        "Access-Control-Allow-Origin":"*"
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
       },
-      body:json
+      body: data
     };
 
-  }catch(err){
+  } catch {
 
     return {
-      statusCode:500,
-      body:JSON.stringify({
-        error:"Failed to fetch ENV"
+      statusCode: 404,
+      body: JSON.stringify({
+        error: "Env not found"
       })
     };
 
